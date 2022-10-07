@@ -1,0 +1,15 @@
+numpy
+click
+pillow
+scipy
+pytorch
+requests
+tqdm
+ninja
+matplotlib
+imageio
+imgui
+glfw
+pyopengl
+imageio-ffmpeg
+pyspng

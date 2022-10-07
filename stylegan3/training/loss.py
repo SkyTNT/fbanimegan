@@ -27,7 +27,7 @@ class Loss:
 # ----------------------------------------------------------------------------
 
 class StyleGAN2Loss(Loss):
-    def __init__(self, device, G, D, diffaugment='color,translation,cutout', augment_pipe=None, r1_gamma=10, style_mixing_prob=0, pl_weight=0,
+    def __init__(self, device, G, D, diffaugment='', augment_pipe=None, r1_gamma=10, style_mixing_prob=0, pl_weight=0,
                  pl_batch_shrink=2, pl_decay=0.01, pl_no_weight_grad=False, blur_init_sigma=0, blur_fade_kimg=0):
         super().__init__()
         self.device = device

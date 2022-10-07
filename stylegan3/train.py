@@ -135,6 +135,7 @@ def parse_comma_separated_list(s):
 @click.option('--cond',         help='Train conditional model', metavar='BOOL',                 type=bool, default=False, show_default=True)
 @click.option('--mirror',       help='Enable dataset x-flips', metavar='BOOL',                  type=bool, default=False, show_default=True)
 @click.option('--aug',          help='Augmentation mode',                                       type=click.Choice(['noaug', 'ada', 'fixed']), default='ada', show_default=True)
+@click.option('--diffaug',      help='Comma-separated list of DiffAugment policy [default: color,translation,cutout]', type=str, default='color,translation,cutout')
 @click.option('--resume',       help='Resume from given network pickle', metavar='[PATH|URL]',  type=str)
 @click.option('--freezed',      help='Freeze first layers of D', metavar='INT',                 type=click.IntRange(min=0), default=0, show_default=True)
 
@@ -253,7 +254,9 @@ def main(**kwargs):
             c.loss_kwargs.blur_fade_kimg = c.batch_size * 200 / 32 # Fade out the blur during the first N kimg.
 
     # Augmentation.
-    if opts.aug != 'noaug':
+    if opts.diffaug:
+        c.loss_kwargs.diffaugment = opts.diffaug
+    elif opts.aug != 'noaug':
         c.augment_kwargs = dnnlib.EasyDict(class_name='training.augment.AugmentPipe', xflip=1, xint=1, scale=1, aniso=1, xfrac=1)
         if opts.aug == 'ada':
             c.ada_target = opts.target

@@ -2,7 +2,6 @@ numpy
 click
 pillow
 scipy
-pytorch
 requests
 tqdm
 ninja

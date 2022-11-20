@@ -271,7 +271,6 @@ class MappingNetwork(torch.nn.Module):
                 assert self.w_avg_beta is not None
                 if self.num_ws is None or truncation_cutoff is None:
                     x = self.w_avg.lerp(x, truncation_psi)
-                    x[:, :5] = (truncation_psi*(x - self.w_avg) + self.w_avg)[:, :5]
                 else:
                     x[:, :truncation_cutoff] = self.w_avg.lerp(x[:, :truncation_cutoff], truncation_psi)
         return x
@@ -501,8 +500,8 @@ class SynthesisNetwork(torch.nn.Module):
         self.w_dim = w_dim
         self.img_resolution = img_resolution
         self.img_resolution_log2 = int(np.log2(min(img_resolution)))
-        self.min_h = img_resolution[0] // min(img_resolution)
-        self.min_w = img_resolution[1] // min(img_resolution)
+        self.min_h = img_resolution[0] / min(img_resolution)
+        self.min_w = img_resolution[1] / min(img_resolution)
         self.img_channels = img_channels
         self.num_fp16_res = num_fp16_res
         self.block_resolutions = [2 ** i for i in range(2, self.img_resolution_log2 + 1)]
@@ -516,7 +515,7 @@ class SynthesisNetwork(torch.nn.Module):
             use_fp16 = (res >= fp16_resolution)
             is_last = (res == min(self.img_resolution))
             block = SynthesisBlock(in_channels, out_channels, w_dim=w_dim,
-                                   resolution=(res * self.min_h, res * self.min_w),
+                                   resolution=(int(res * self.min_h), int(res * self.min_w)),
                                    img_channels=img_channels, is_last=is_last, use_fp16=use_fp16, **block_kwargs)
             self.num_ws += block.num_conv
             if is_last:
@@ -792,8 +791,8 @@ class Discriminator(torch.nn.Module):
         self.c_dim = c_dim
         self.img_resolution = img_resolution
         self.img_resolution_log2 = int(np.log2(min(img_resolution)))
-        self.min_h = img_resolution[0] // min(img_resolution)
-        self.min_w = img_resolution[1] // min(img_resolution)
+        self.min_h = img_resolution[0] / min(img_resolution)
+        self.min_w = img_resolution[1] / min(img_resolution)
         self.img_channels = img_channels
         self.block_resolutions = [2 ** i for i in range(self.img_resolution_log2, 2, -1)]
         channels_dict = {res: min(channel_base // res, channel_max) for res in self.block_resolutions + [4]}
@@ -812,7 +811,7 @@ class Discriminator(torch.nn.Module):
             out_channels = channels_dict[res // 2]
             use_fp16 = (res >= fp16_resolution)
             block = DiscriminatorBlock(in_channels, tmp_channels, out_channels,
-                                       resolution=(res * self.min_h, res * self.min_w),
+                                       resolution=(int(res * self.min_h), int(res * self.min_w)),
                                        first_layer_idx=cur_layer_idx, use_fp16=use_fp16, **block_kwargs,
                                        **common_kwargs)
             setattr(self, f'b{res}', block)
@@ -821,7 +820,7 @@ class Discriminator(torch.nn.Module):
             self.mapping = MappingNetwork(z_dim=0, c_dim=c_dim, w_dim=cmap_dim, num_ws=None, w_avg_beta=None,
                                           **mapping_kwargs)
         self.b4 = DiscriminatorEpilogue(channels_dict[4], cmap_dim=cmap_dim,
-                                        resolution=(4 * self.min_h, 4 * self.min_w), **epilogue_kwargs,
+                                        resolution=(int(4 * self.min_h), int(4 * self.min_w)), **epilogue_kwargs,
                                         **common_kwargs)
 
     def forward(self, img, c, update_emas=False, **block_kwargs):
